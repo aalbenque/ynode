@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YNode/0.1 - Demo</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="css/ynode.css">
+</head>
+<body>
+  <div class="container py-5">
+    <div class="main-card shadow-lg p-4 p-md-5">
+
+      <!-- Hero -->
+      <div class="hero d-flex align-items-center gap-3 flex-wrap">
+        <img src="img/ynode.png" alt="YNode logo">
+        <div class="flex-grow-1">
+          <h1 class="mb-0 fw-bold">YNode
+            <span class="badge bg-secondary badge-server ms-1">0.1</span>
+          </h1>
+          <p class="text-muted mb-0">Lightweight Bash HTTP/1.1 server · Static demo page</p>
+        </div>
+        <a href="docs.html" class="btn btn-outline-secondary btn-sm">Docs</a>
+        <a href="index.php" class="btn btn-outline-secondary btn-sm">PHP Demo</a>
+      </div>
+
+      <!-- Feature grid -->
+      <section class="mb-5">
+        <h2 class="h5 fw-semibold mb-3">What's running under the hood</h2>
+        <div class="row g-3">
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-primary bg-opacity-10 text-primary">⚡</div>
+              <div>
+                <div class="fw-semibold">Pure Bash</div>
+                <div class="text-muted small">No compiled server binary. Everything is shell scripts.</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-success bg-opacity-10 text-success">🔒</div>
+              <div>
+                <div class="fw-semibold">SSL / TLS</div>
+                <div class="text-muted small">HTTPS via <code>socat OPENSSL-LISTEN</code>.</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-warning bg-opacity-10 text-warning">🐘</div>
+              <div>
+                <div class="fw-semibold">FastCGI / PHP-FPM</div>
+                <div class="text-muted small">Routes <code>.php</code> requests over Unix socket.</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-info bg-opacity-10 text-info">📁</div>
+              <div>
+                <div class="fw-semibold">Static file serving</div>
+                <div class="text-muted small">ETag, Last-Modified, Range, 304 Not Modified.</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-danger bg-opacity-10 text-danger">🔑</div>
+              <div>
+                <div class="fw-semibold">HTTP Basic Auth</div>
+                <div class="text-muted small">Per-directory protection via <code>.ynpasswd</code>.</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-sm-6 col-lg-4">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="feature-icon bg-secondary bg-opacity-10 text-secondary">🔌</div>
+              <div>
+                <div class="fw-semibold">Module system</div>
+                <div class="text-muted small"><code>.ynaccess</code> picks the handler per path.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Live endpoint tester -->
+      <section class="mb-5">
+        <h2 class="h5 fw-semibold mb-3">Live endpoint tester</h2>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-3">
+            <label class="form-label small fw-semibold" for="sel-method">Method</label>
+            <select class="form-select form-select-sm" id="sel-method">
+              <option>GET</option>
+              <option>POST</option>
+              <option>HEAD</option>
+            </select>
+          </div>
+          <div class="col-md-7">
+            <label class="form-label small fw-semibold" for="inp-path">Path</label>
+            <input class="form-control form-control-sm font-monospace" id="inp-path"
+                   type="text" value="/ping" placeholder="/ping">
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-primary btn-sm w-100" id="btn-send">Send</button>
+          </div>
+        </div>
+
+        <!-- Quick-pick buttons -->
+        <div class="mt-2 d-flex flex-wrap gap-2">
+          <span class="text-muted small align-self-center">Try:</span>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/ping">/ping</button>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/ynode.png">/ynode.png</button>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/restricted">/restricted</button>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/index.php">/index.php</button>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/.ynaccess">/.ynaccess</button>
+          <button class="btn btn-outline-secondary btn-sm font-monospace" data-path="/missing">/missing</button>
+        </div>
+
+        <div class="mt-3">
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span class="small fw-semibold text-muted">Response</span>
+            <button class="btn btn-sm btn-link text-muted p-0" id="btn-clear">clear</button>
+          </div>
+          <div id="response-box">- hit Send to fire a request -</div>
+        </div>
+      </section>
+
+      <!-- .ynaccess endpoints reference -->
+      <section class="mb-5">
+        <h2 class="h5 fw-semibold mb-3">Routing rules active on this site</h2>
+        <p class="text-muted small">Defined in <code>www-demo/.ynaccess</code></p>
+        <div class="table-responsive">
+          <table class="table table-sm table-hover endpoint-row">
+            <thead class="table-light">
+              <tr>
+                <th>Path pattern</th>
+                <th>Module / action</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code>^/$</code></td>
+                <td><span class="badge bg-success">fcgi</span></td>
+                <td>Rewrites to <code>/index.php</code>, sent to PHP-FPM</td>
+              </tr>
+              <tr>
+                <td><code>^/restricted</code></td>
+                <td><span class="badge bg-warning text-dark">auth_basic</span></td>
+                <td>HTTP Basic Auth · realm: <em>Restricted Area</em></td>
+              </tr>
+              <tr>
+                <td><code>/.ynaccess$</code></td>
+                <td><span class="badge bg-danger">404</span></td>
+                <td>Config files are hidden from the web</td>
+              </tr>
+              <tr>
+                <td><code>/ping</code></td>
+                <td><span class="badge bg-primary">ping</span></td>
+                <td>Health check · always returns <code>200 OK</code></td>
+              </tr>
+              <tr>
+                <td><code>/test_cgi.php</code></td>
+                <td><span class="badge bg-secondary">cgi</span></td>
+                <td>Executed via <code>php-cgi</code> (CGI mode)</td>
+              </tr>
+              <tr>
+                <td><code>*.php</code> (other)</td>
+                <td><span class="badge bg-danger">deny</span></td>
+                <td>403 Forbidden - only index.php is public</td>
+              </tr>
+              <tr>
+                <td>everything else</td>
+                <td><span class="badge bg-info text-dark">static</span></td>
+                <td><code>Cache-Control: max-age=31536000</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Gallery -->
+      <section class="mb-5">
+        <h2 class="h5 fw-semibold mb-3">Static assets (served with ETag caching)</h2>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+              <img src="img/arestifo_monte_bregagno.jpg" class="gallery-img" alt="Sample image 1">
+              <div class="card-body py-2">
+                <div class="small text-muted"><code>arestifo_monte_bregagno.jpg</code> · JPEG · static module</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card border-0 shadow-sm">
+              <img src="img/kyoung_chicago.jpg" class="gallery-img" alt="Sample image 2">
+              <div class="card-body py-2">
+                <div class="small text-muted"><code>kyoung_chicago.jpg</code> · JPEG · static module</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Video -->
+      <section class="mb-5">
+        <h2 class="h5 fw-semibold mb-3">Video (HTTP Range / 206 Partial Content)</h2>
+        <video class="w-100 rounded shadow-sm" style="max-width:640px" controls preload="metadata">
+          <source src="media/video.webm" type="video/webm">
+          Your browser does not support the video element.
+        </video>
+        <p class="text-muted small mt-2">
+          YNode handles <code>Range</code> requests - browser video seeks work without downloading the full file.
+        </p>
+      </section>
+
+      <!-- POST form -->
+      <section class="mb-2">
+        <h2 class="h5 fw-semibold mb-3">Form POST test</h2>
+        <p class="text-muted small">
+          This form posts to <code>/index.php</code> via FastCGI.
+          Requires PHP-FPM to be running; the response is shown below the form.
+        </p>
+        <form action="/index.php?postForm=true" method="POST" enctype="multipart/form-data">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="f-name">Name</label>
+              <input class="form-control form-control-sm" type="text" name="name" id="f-name" placeholder="Your name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold" for="f-email">Email</label>
+              <input class="form-control form-control-sm" type="email" name="email" id="f-email" placeholder="you@example.com">
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold" for="f-file">File upload</label>
+              <input class="form-control form-control-sm" type="file" name="file" id="f-file">
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary btn-sm">Submit</button>
+            </div>
+          </div>
+        </form>
+      </section>
+
+      <!-- Media credits -->
+      <section class="mt-5 pt-4 border-top">
+        <h2 class="h6 fw-semibold text-muted mb-3">Demo media credits</h2>
+        <div class="small text-muted">
+          <p class="mb-2">Images and video are used for demonstration purposes only and are not covered by the project BSD 3-Clause License.</p>
+          <table class="table table-sm text-muted small mb-2 table-bordered">
+            <thead>
+              <tr>
+                <th>File</th>
+                <th>Author</th>
+                <th>Source</th>
+                <th>License</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="font-monospace">arestifo_monte_bregagno.jpg</td>
+                <td>Alberto Restifo</td>
+                <td><a href="https://500px.com/albertorestifo" class="text-muted" target="_blank" rel="noopener">500px.com/albertorestifo</a></td>
+                <td>CC0 1.0</td>
+              </tr>
+              <tr>
+                <td class="font-monospace">kyoung_chicago.jpg</td>
+                <td>Kevin Young</td>
+                <td><a href="https://www.flickr.com/photos/kevinjyoung" class="text-muted" target="_blank" rel="noopener">flickr.com/photos/kevinjyoung</a></td>
+                <td>CC0 1.0</td>
+              </tr>
+              <tr>
+                <td class="font-monospace">dzawila_hopeful_horizons.webp</td>
+                <td>Dawid Zawila</td>
+                <td><a href="http://facebook.com/dawidzawilafotografia" class="text-muted" target="_blank" rel="noopener">facebook.com/dawidzawilafotografia</a></td>
+                <td>CC0 1.0</td>
+              </tr>
+              <tr>
+                <td class="font-monospace">video.webm</td>
+                <td>Michael Pisano</td>
+                <td><a href="https://vimeo.com/251588356" class="text-muted" target="_blank" rel="noopener">vimeo.com/251588356</a> - <em>Nature Documentary Reel, 2017</em></td>
+                <td><a href="https://creativecommons.org/licenses/by/3.0/" class="text-muted" target="_blank" rel="noopener">CC BY 3.0</a></td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="mb-0">Files may have been resized, cropped, clipped, or recompressed for use in the demo site.</p>
+        </div>
+      </section>
+
+    </div><!-- /.main-card -->
+
+    <footer class="text-center mt-4">
+      YNode/0.1 &nbsp;·&nbsp; BSD 3-Clause &nbsp;·&nbsp;
+      <a href="https://github.com/aalbenque/ynode" class="text-white-50">GitHub</a>
+    </footer>
+  </div><!-- /.container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+          crossorigin="anonymous"></script>
+  <script src="js/index.js"></script>
+</body>
+</html>

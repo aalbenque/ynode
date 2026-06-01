@@ -1,0 +1,12 @@
+if is_directory; then
+  export YN_R_PATH="${YN_R_PATH}/index.php"
+  #module cgi
+  module fcgi /run/php-fpm.sock
+elif extension "php"; then
+  #module cgi
+  module fcgi /run/php-fpm.sock
+else
+  #add_header "Cache-Control" "public, max-age=31536000, immutable"
+  add_header "Origin" "default"
+  module static
+fi

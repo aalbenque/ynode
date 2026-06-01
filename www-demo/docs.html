@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>YNode/0.1 - Documentation</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+        crossorigin="anonymous">
+  <link rel="stylesheet" href="css/ynode.css">
+</head>
+<body>
+<div class="container py-5">
+  <div class="main-card shadow-lg p-4 p-md-5">
+
+    <!-- ── Hero (same structure as index.html) ── -->
+    <div class="hero d-flex align-items-center gap-3 flex-wrap">
+      <img src="img/ynode.png" alt="YNode logo">
+      <div class="flex-grow-1">
+        <h1 class="mb-0 fw-bold">YNode
+          <span class="badge bg-secondary badge-server ms-1">0.1</span>
+        </h1>
+        <p class="text-muted mb-0">Documentation</p>
+      </div>
+      <a href="index.html" class="btn btn-outline-secondary btn-sm">Demo</a>
+      <a href="index.php" class="btn btn-outline-secondary btn-sm">PHP Demo</a>
+    </div>
+
+    <!-- ── Sticky TOC strip ── -->
+    <div class="toc-strip" id="toc">
+      <a href="#intro">Introduction</a><span class="toc-sep">·</span>
+      <a href="#features">Features</a><span class="toc-sep">·</span>
+      <a href="#requirements">Requirements</a><span class="toc-sep">·</span>
+      <a href="#helper">FastCGI Helper</a><span class="toc-sep">·</span>
+      <a href="#quickstart">Quick Start</a><span class="toc-sep">·</span>
+      <a href="#usage">CLI Usage</a><span class="toc-sep">·</span>
+      <a href="#configuration">Configuration</a><span class="toc-sep">·</span>
+      <a href="#structure">File Structure</a><span class="toc-sep">·</span>
+      <a href="#flow">Request Flow</a><span class="toc-sep">·</span>
+      <a href="#ynaccess">.ynaccess</a><span class="toc-sep">·</span>
+      <a href="#caching">Caching</a><span class="toc-sep">·</span>
+      <a href="#compression">Compression</a><span class="toc-sep">·</span>
+      <a href="#chunked">Chunked Requests</a><span class="toc-sep">·</span>
+      <a href="#auth">Auth</a><span class="toc-sep">·</span>
+      <a href="#proxy">Proxy</a><span class="toc-sep">·</span>
+      <a href="#cgi">CGI</a><span class="toc-sep">·</span>
+      <a href="#modules">Modules</a><span class="toc-sep">·</span>
+      <a href="#limitations">Limitations</a>
+    </div>
+
+    <!-- ══════════════════════════════════════════════
+         INTRODUCTION
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="intro">
+      <h2 class="h5 fw-semibold mb-3">Introduction</h2>
+      <p>
+        <strong>YNode</strong> is a lightweight HTTP/1.1 web server written entirely in Bash.
+        It uses <a href="http://www.dest-unreach.org/socat/" target="_blank" rel="noopener">socat</a>
+        to handle network I/O and implements the full request/response cycle in shell scripts,
+        with pluggable module handlers for static files, FastCGI (PHP-FPM), CGI, reverse proxy, health checks, and more.
+      </p>
+      <div class="status-banner">
+        <span>⚠️</span>
+        <div>
+          <strong>Active development.</strong>
+          HTTP/2 support is experimental and non-functional.
+          See <a href="#limitations">Limitations</a> for details.
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         FEATURES
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="features">
+      <h2 class="h5 fw-semibold mb-3">Features</h2>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-primary bg-opacity-10 text-primary">⚡</div>
+            <div>
+              <div class="fw-semibold">Pure Bash</div>
+              <div class="text-muted small">No compiled server binary required; runs anywhere Bash 4+ is available.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-success bg-opacity-10 text-success">🔒</div>
+            <div>
+              <div class="fw-semibold">SSL / TLS</div>
+              <div class="text-muted small">HTTPS via socat's <code>OPENSSL-LISTEN</code> with configurable certificates.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-warning bg-opacity-10 text-warning">🐘</div>
+            <div>
+              <div class="fw-semibold">FastCGI / PHP-FPM</div>
+              <div class="text-muted small">Communicates with PHP-FPM over Unix sockets; optional C helper for ~10× faster encoding.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-info bg-opacity-10 text-info">📁</div>
+            <div>
+              <div class="fw-semibold">Static file serving</div>
+              <div class="text-muted small">ETag, <code>Last-Modified</code>, <code>304</code>, HTTP Range (<code>206</code> / <code>416</code>), static compression.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-danger bg-opacity-10 text-danger">🔑</div>
+            <div>
+              <div class="fw-semibold">HTTP Basic Auth</div>
+              <div class="text-muted small">Per-directory protection via standard htpasswd-format files.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-secondary bg-opacity-10 text-secondary">🔌</div>
+            <div>
+              <div class="fw-semibold">Module system</div>
+              <div class="text-muted small"><code>.ynaccess</code> files select the handler module per path, per directory.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-primary bg-opacity-10 text-primary">🔁</div>
+            <div>
+              <div class="fw-semibold">Keep-alive</div>
+              <div class="text-muted small">Persistent connections with configurable timeout.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-secondary bg-opacity-10 text-secondary">👁️</div>
+            <div>
+              <div class="fw-semibold">File metadata cache</div>
+              <div class="text-muted small"><code>file_watch.sh</code> daemon maintains ETag/MIME cache via <code>inotifywait</code>.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-success bg-opacity-10 text-success">🗜️</div>
+            <div>
+              <div class="fw-semibold">Compression</div>
+              <div class="text-muted small">Per-directory <code>static_compression</code> and <code>dynamic_compression</code> directives for <code>gzip</code>, <code>br</code>, <code>zstd</code>.</div>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="feature-icon bg-warning bg-opacity-10 text-warning">📦</div>
+            <div>
+              <div class="fw-semibold">Chunked requests</div>
+              <div class="text-muted small"><code>Transfer-Encoding: chunked</code> uploads decoded server-side with body and chunk count limits.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         REQUIREMENTS
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="requirements">
+      <h2 class="h5 fw-semibold mb-3">Requirements</h2>
+
+      <h3>Runtime</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Dependency</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>bash</code> 4+</td><td>Shell environment</td></tr>
+            <tr><td><code>socat</code></td><td>Network listener, SSL termination, process forking</td></tr>
+            <tr><td><code>file</code></td><td>MIME type detection</td></tr>
+            <tr><td><code>md5sum</code></td><td>ETag generation</td></tr>
+            <tr><td><code>stat</code>, <code>realpath</code></td><td>File metadata and path normalization</td></tr>
+            <tr><td><code>date</code></td><td>HTTP header date formatting</td></tr>
+            <tr><td><code>openssl</code></td><td>TLS support, htpasswd hash verification</td></tr>
+            <tr><td><code>inotifywait</code></td><td>File system event monitoring (from <code>inotify-tools</code>)</td></tr>
+            <tr><td><code>nc</code> / <code>ncat</code></td><td>FastCGI fallback when compiled helper is absent</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Optional - PHP support</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Dependency</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>php-fpm</code></td><td>FastCGI server (listens on a Unix socket or TCP address)</td></tr>
+            <tr><td><code>php-cgi</code></td><td>CGI binary for alternative PHP execution</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Optional - build</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Dependency</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>gcc</code></td><td>Compile the FastCGI parameter encoder (<code>helper/helper</code>)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         FASTCGI HELPER
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="helper">
+      <h2 class="h5 fw-semibold mb-3">Building the FastCGI Helper</h2>
+      <p>
+        The C helper encodes FastCGI parameters roughly 10× faster than the pure-Bash fallback.
+        It is optional - the server works without it, but FastCGI performance will be degraded.
+        The compiled binary goes to <code>helper/helper</code>; point <code>YN_HELPER</code> at it in your config.
+      </p>
+<pre><span class="sh-cmd">make</span>              <span class="sh-comment"># compile helper/helper</span>
+<span class="sh-cmd">make clean</span>        <span class="sh-comment"># remove compiled binary</span></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         QUICK START
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="quickstart">
+      <h2 class="h5 fw-semibold mb-3">Quick Start</h2>
+
+      <h3>1. Generate a self-signed certificate</h3>
+<pre><span class="sh-cmd">openssl</span> req <span class="sh-flag">-x509 -newkey</span> rsa:4096 <span class="sh-flag">-keyout</span> self-cert.key <span class="sh-flag">-out</span> self-cert.pem \
+  <span class="sh-flag">-days</span> 365 <span class="sh-flag">-nodes -subj</span> <span class="sh-str">"/CN=localhost"</span>
+</pre>
+
+      <h3>2. Start PHP-FPM <span class="fw-normal text-muted">(if you need PHP support)</span></h3>
+<pre><span class="sh-comment"># Arch Linux / systemd</span>
+<span class="sh-cmd">sudo systemctl start php-fpm</span>
+<span class="sh-comment"># Socket path must match YN_FCGI_URI - default: unix:/run/php-fpm/php-fpm.sock</span></pre>
+
+      <h3>3. Build the helper</h3>
+<pre><span class="sh-cmd">make</span></pre>
+
+      <h3>4. Start the server</h3>
+<pre><span class="sh-comment"># HTTPS on port 6680, serving ./www-demo</span>
+./server.sh <span class="sh-flag">-c</span> config/ynode.conf <span class="sh-flag">-s</span>
+
+<span class="sh-comment"># HTTP on a custom port with a different document root</span>
+./server.sh <span class="sh-flag">-c</span> config/ynode.conf <span class="sh-flag">-w</span> /var/www/html <span class="sh-flag">-p</span> 8080
+
+<span class="sh-comment"># Verbose output written to a log file</span>
+./server.sh <span class="sh-flag">-c</span> config/ynode.conf <span class="sh-flag">-s -v -l</span> /tmp/ynode.log</pre>
+
+      <h3>5. Test</h3>
+<pre><span class="sh-cmd">curl</span> <span class="sh-flag">-k</span> https://127.0.0.1:6680/ping          <span class="sh-comment"># health check</span>
+<span class="sh-cmd">curl</span> <span class="sh-flag">-k</span> https://127.0.0.1:6680/ynode.png      <span class="sh-comment"># static file</span>
+<span class="sh-cmd">curl</span> <span class="sh-flag">-k</span> https://127.0.0.1:6680/index.php      <span class="sh-comment"># PHP via FastCGI</span>
+<span class="sh-cmd">curl</span> <span class="sh-flag">-k -u</span> user:pass https://127.0.0.1:6680/restricted  <span class="sh-comment"># Basic Auth</span></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         CLI USAGE
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="usage">
+      <h2 class="h5 fw-semibold mb-3">CLI Usage</h2>
+<pre>Usage: server.sh [OPTIONS]
+
+Options:
+  <span class="sh-flag">-h, --help</span>              Show this help message and exit
+  <span class="sh-flag">-v, --verbose</span>           Enable verbose output
+  <span class="sh-flag">-d, --debug</span>             Enable debug output
+  <span class="sh-flag">-l, --logfile</span> &lt;file&gt;    Write log output to &lt;file&gt;
+  <span class="sh-flag">-c, --config</span> &lt;file&gt;     Load configuration from &lt;file&gt; (repeatable)
+  <span class="sh-flag">-w, --www-root</span> &lt;dir&gt;    Set the HTTP document root
+  <span class="sh-flag">-p, --port</span> &lt;number&gt;     Set the port to listen on
+  <span class="sh-flag">-s, --ssl</span>               Enable SSL/TLS
+  <span class="sh-flag">-0</span>                      Ping mode (returns "OK" to all requests)</pre>
+      <p class="text-muted small">
+        Multiple <code>-c</code> flags are sourced in order - later files override earlier ones:
+      </p>
+<pre>./server.sh <span class="sh-flag">-c</span> config/ynode.conf <span class="sh-flag">-c</span> config/site.conf <span class="sh-flag">-s</span></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         CONFIGURATION
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="configuration">
+      <h2 class="h5 fw-semibold mb-3">Configuration</h2>
+      <p class="text-muted small">
+        Config files are plain shell scripts sourced by <code>server.sh</code>.
+        All variables are exported to child processes.
+      </p>
+
+      <h3><code>config/ynode.conf</code> - server defaults</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_HTTP_SERVER_PORT</code></td><td><code>6680</code></td><td>TCP port to listen on</td></tr>
+            <tr><td><code>YN_SOCAT_BACKLOG</code></td><td><code>128</code></td><td><code>listen()</code> backlog passed to socat</td></tr>
+            <tr><td><code>YN_MAX_TIMEOUT</code></td><td><code>5</code></td><td>Keep-alive timeout in seconds</td></tr>
+            <tr><td><code>YN_HTTP_SERVER</code></td><td><code>YNode/0.1</code></td><td>Value of the <code>Server:</code> response header</td></tr>
+            <tr><td><code>YN_SSL</code></td><td><code>1</code></td><td>Enable SSL (<code>1</code>) or disable (<code>""</code>)</td></tr>
+            <tr><td><code>YN_SSL_CERT</code></td><td><code>./self-cert.pem</code></td><td>Path to SSL certificate</td></tr>
+            <tr><td><code>YN_SSL_PRIVKEY</code></td><td><code>./self-cert.key</code></td><td>Path to SSL private key</td></tr>
+            <tr><td><code>YN_FCGI_URI</code></td><td><code>unix:/run/php-fpm/php-fpm.sock</code></td><td>FastCGI Unix socket</td></tr>
+            <tr><td><code>YN_HELPER</code></td><td><code>helper/helper</code></td><td>Path to compiled FastCGI helper</td></tr>
+            <tr><td><code>YN_STATIC_DATA_DIR</code></td><td><code>/tmp/yn-static-data-dir</code></td><td>Static file metadata cache directory</td></tr>
+            <tr><td><code>YN_HTTP_COMPRESSION</code></td><td><code>none</code></td><td>Compression mode - currently broken, leave as <code>none</code></td></tr>
+            <tr><td><code>YN_VERBOSE</code></td><td><code>1</code></td><td>Enable verbose logging</td></tr>
+            <tr><td><code>YN_DEBUG</code></td><td><code>""</code></td><td>Enable debug logging</td></tr>
+            <tr><td><code>YN_HTTP2</code></td><td><code>""</code></td><td>Enable HTTP/2 - experimental, non-functional</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Request limits</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_MAX_BODY_SIZE</code></td><td><code>52428800</code></td><td>Maximum request body size in bytes (50 MiB)</td></tr>
+            <tr><td><code>YN_MAX_CHUNKS</code></td><td><code>8192</code></td><td>Maximum number of chunks per chunked request</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Compression binaries and levels</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_GZIP_BIN</code></td><td><code>$(which gzip)</code></td><td>Path to gzip binary</td></tr>
+            <tr><td><code>YN_BROTLI_BIN</code></td><td><code>$(which brotli)</code></td><td>Path to brotli binary</td></tr>
+            <tr><td><code>YN_ZSTD_BIN</code></td><td><code>$(which zstd)</code></td><td>Path to zstd binary</td></tr>
+            <tr><td><code>YN_GZIP_LEVEL</code></td><td><code>9</code></td><td>gzip level for pre-compressed static files</td></tr>
+            <tr><td><code>YN_BROTLI_LEVEL</code></td><td><code>9</code></td><td>brotli quality for pre-compressed static files</td></tr>
+            <tr><td><code>YN_ZSTD_LEVEL</code></td><td><code>15</code></td><td>zstd level for pre-compressed static files</td></tr>
+            <tr><td><code>YN_GZIP_LEVEL_OTF</code></td><td><code>3</code></td><td>gzip level for on-the-fly dynamic compression</td></tr>
+            <tr><td><code>YN_BROTLI_LEVEL_OTF</code></td><td><code>1</code></td><td>brotli quality for on-the-fly dynamic compression</td></tr>
+            <tr><td><code>YN_ZSTD_LEVEL_OTF</code></td><td><code>1</code></td><td>zstd level for on-the-fly dynamic compression</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3><code>config/site.conf</code> - site-specific overrides</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Example</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_HTTP_ROOT</code></td><td><code>$(realpath ./www-demo/)</code></td><td>Document root (absolute path recommended)</td></tr>
+            <tr><td><code>YN_DEFAULT_PAGES_DIR</code></td><td><code>./default_pages</code></td><td>Directory containing error page HTML files</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         DIRECTORY STRUCTURE
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="structure">
+      <h2 class="h5 fw-semibold mb-3">Directory Structure</h2>
+<pre>ynode/
+├── server.sh             <span class="sh-comment"># Main launcher</span>
+├── http1.1.sh            <span class="sh-comment"># HTTP/1.1 request handler</span>
+├── http0.sh              <span class="sh-comment"># HTTP ping handler (minimal)</span>
+├── h2.sh                 <span class="sh-comment"># HTTP/2 handler (experimental)</span>
+├── h2-utils.sh           <span class="sh-comment"># HTTP/2 utilities</span>
+├── h2-frames.sh          <span class="sh-comment"># HTTP/2 frame type definitions</span>
+├── h2-func.sh            <span class="sh-comment"># HTTP/2 frame processing</span>
+├── http-func.sh          <span class="sh-comment"># Response building (headers, error pages)</span>
+├── utils.sh              <span class="sh-comment"># Logging, parsing, .ynaccess primitives</span>
+├── fcgi-utils.sh         <span class="sh-comment"># FastCGI protocol encoding</span>
+├── method_call.sh        <span class="sh-comment"># Request routing and .ynaccess loader</span>
+├── file_watch.sh         <span class="sh-comment"># Static file metadata cache daemon</span>
+│
+├── modules/
+│   ├── static.sh         <span class="sh-comment"># Serve static files</span>
+│   ├── fcgi.sh           <span class="sh-comment"># Forward requests to FastCGI</span>
+│   ├── cgi.sh            <span class="sh-comment"># Execute CGI binaries</span>
+│   ├── ping.sh           <span class="sh-comment"># Health check (200 OK)</span>
+│   ├── proxy.sh          <span class="sh-comment"># Reverse proxy (HTTP/HTTPS/Unix socket)</span>
+│   ├── redirect.sh       <span class="sh-comment"># 301 redirect</span>
+│   ├── temp_redirect.sh  <span class="sh-comment"># 302 redirect</span>
+│   ├── autoindex.sh      <span class="sh-comment"># Directory listing (not implemented)</span>
+│   └── unimplemented.sh  <span class="sh-comment"># Placeholder (returns 501)</span>
+│
+├── config/
+│   ├── ynode.conf        <span class="sh-comment"># Main server configuration</span>
+│   ├── site.conf         <span class="sh-comment"># Site-specific configuration</span>
+│   └── ynacces_example   <span class="sh-comment"># Annotated .ynaccess reference</span>
+│
+├── default/
+│   └── default_ynaccess  <span class="sh-comment"># Fallback routing rules</span>
+│
+├── default_pages/        <span class="sh-comment"># HTML error page templates</span>
+│   └── 400.html … 505.html
+│
+├── helper/
+│   ├── helper.c          <span class="sh-comment"># FastCGI parameter encoder /decoder</span>
+│   ├── helper.h          <span class="sh-comment"># FastCGI protocol definitions</span>
+│   └── hpack_helper.py   <span class="sh-comment"># HTTP/2 HPACK helper (unused)</span>
+│
+├── www-demo/             <span class="sh-comment"># Example site (you are here)</span>
+│   ├── .ynaccess         <span class="sh-comment"># Demo routing rules</span>
+│   ├── index.html        <span class="sh-comment"># Demo home page</span>
+│   └── docs.html         <span class="sh-comment"># This page</span>
+│
+├── Makefile              <span class="sh-comment"># Compiles helper/helper.c</span>
+└── LICENSE               <span class="sh-comment"># BSD 3-Clause</span></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         REQUEST FLOW
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="flow">
+      <h2 class="h5 fw-semibold mb-3">Request Processing Flow</h2>
+<pre><span class="flow-step">server.sh</span>
+  <span class="flow-arrow">└─</span> socat <span class="flow-note">TCP-LISTEN / OPENSSL-LISTEN</span>
+       <span class="flow-arrow">└─</span> <span class="flow-note">per connection:</span> exec <span class="flow-file">http1.1.sh</span>
+
+<span class="flow-step">http1.1.sh</span>
+  <span class="flow-arrow">├─</span> Read request line <span class="flow-arrow">→</span> parse method, path, query string
+  <span class="flow-arrow">├─</span> Read headers <span class="flow-note">(until blank line)</span>
+  <span class="flow-arrow">├─</span> Read body <span class="flow-note">(Content-Length or chunked Transfer-Encoding)</span>
+  <span class="flow-arrow">└─</span> Source <span class="flow-file">method_call.sh</span>
+
+<span class="flow-step">method_call.sh</span>
+  <span class="flow-arrow">├─</span> Canonicalize and validate path <span class="flow-note">(path traversal prevention)</span>
+  <span class="flow-arrow">├─</span> Load <span class="flow-file">.ynaccess</span> from request directory <span class="flow-note">(or default_ynaccess)</span>
+  <span class="flow-arrow">└─</span> Set <span class="flow-fn">YN_MODULE</span> and <span class="flow-fn">YN_MODULE_PARAMETERS</span>
+
+<span class="flow-step">modules/&lt;name&gt;.sh</span>
+  <span class="flow-arrow">├─</span> <span class="flow-fn">prepare_headers()</span>  <span class="flow-note">- validate request, set response code and headers</span>
+  <span class="flow-arrow">└─</span> <span class="flow-fn">output_content()</span>   <span class="flow-note">- write response via output_headers() + body</span>
+
+<span class="flow-step">http1.1.sh</span>
+  <span class="flow-arrow">├─</span> Check <span class="flow-note">Connection: keep-alive</span>
+  <span class="flow-arrow">└─</span> Loop for next request or close</pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         .YNACCESS
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="ynaccess">
+      <h2 class="h5 fw-semibold mb-3"><code>.ynaccess</code> Routing Files</h2>
+      <p>
+        Each directory in the document root can contain a <code>.ynaccess</code> file - a Bash
+        script sourced by <code>method_call.sh</code> for every request targeting that directory.
+        It selects the backend module and applies per-request transformations.
+      </p>
+
+      <h3>Available Primitives</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Primitive</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>is_directory</code></td><td>True if the requested path is a directory</td></tr>
+            <tr><td><code>extension EXT …</code></td><td>True if the file extension matches any argument</td></tr>
+            <tr><td><code>match REGEX</code></td><td>True if the request path matches the regex</td></tr>
+            <tr><td><code>module NAME [ARGS]</code></td><td>Select a handler module</td></tr>
+            <tr><td><code>add_header NAME VALUE</code></td><td>Add a header to the response</td></tr>
+            <tr><td><code>auth_basic REALM [FILE]</code></td><td>Require HTTP Basic Auth against an htpasswd file</td></tr>
+            <tr><td><code>deny</code></td><td>Return <code>403 Forbidden</code> immediately</td></tr>
+            <tr><td><code>rewrite_path PATH</code></td><td>Rewrite the request path before module selection</td></tr>
+            <tr><td><code>rewrite_prefix FROM TO</code></td><td>Strip <code>FROM</code> from the start of the path and prepend <code>TO</code> - useful before <code>module proxy</code></td></tr>
+            <tr><td><code>simple_http_response "CODE MSG"</code></td><td>Return an immediate HTTP response, e.g. <code>"404 Not Found"</code></td></tr>
+            <tr><td><code>static_compression ALGO MIN_SIZE</code></td><td>Pre-compress static files; serve with <code>Content-Encoding</code> when the client accepts it. Algorithms: <code>gzip</code>, <code>br</code>, <code>zstd</code>, <code>off</code></td></tr>
+            <tr><td><code>dynamic_compression ALGO</code></td><td>Compress FastCGI/CGI responses on the fly. Algorithms: <code>gzip</code>, <code>br</code>, <code>zstd</code>, <code>off</code></td></tr>
+            <tr><td><code>force_compressed_streaming on|off</code></td><td>Stream compressed dynamic responses with <code>Transfer-Encoding: chunked</code> instead of buffering (lower memory, slightly higher overhead)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Variables Available in <code>.ynaccess</code></h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>$YN_R_PATH</code></td><td>Current request path (can be reassigned)</td></tr>
+            <tr><td><code>$YN_EXTENSION</code></td><td>File extension of the current request path</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Available Modules</h3>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Module</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>static</code></td><td>Serve a static file with caching headers</td></tr>
+            <tr><td><code>fcgi [SOCKET|IPADDR]</code></td><td>Forward to a FastCGI server (defaults to <code>YN_FCGI_URI</code>)</td></tr>
+            <tr><td><code>cgi BINARY</code></td><td>Execute a CGI binary (standard CGI/1.1, clean <code>env -i</code> environment)</td></tr>
+            <tr><td><code>proxy URL</code></td><td>Reverse-proxy to an HTTP, HTTPS, or Unix-socket upstream</td></tr>
+            <tr><td><code>ping</code></td><td>Return <code>200 OK</code> (health check)</td></tr>
+            <tr><td><code>redirect</code></td><td>Permanent <code>301</code> redirect</td></tr>
+            <tr><td><code>temp_redirect</code></td><td>Temporary <code>302</code> redirect</td></tr>
+            <tr><td><code>autoindex</code></td><td>HTML directory listing <em class="text-muted">(not implemented)</em></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Example <code>.ynaccess</code></h3>
+<pre><span class="sh-comment"># Security headers on every response</span>
+<span class="sh-fn">add_header</span> <span class="sh-str">"X-Frame-Options"</span> <span class="sh-str">"DENY"</span>
+<span class="sh-fn">add_header</span> <span class="sh-str">"X-Content-Type-Options"</span> <span class="sh-str">"nosniff"</span>
+
+<span class="sh-comment"># Block access to .ynaccess files themselves</span>
+<span class="sh-kw">if</span> <span class="sh-fn">match</span> <span class="sh-str">"\.ynaccess$"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">deny</span>
+
+<span class="sh-comment"># Health check endpoint</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/ping$"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">module</span> ping
+
+<span class="sh-comment"># Reverse-proxy /api/* to Node, stripping the prefix</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/api/"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">rewrite_prefix</span> <span class="sh-str">"/api"</span> <span class="sh-str">""</span>
+    <span class="sh-fn">module</span> proxy http://127.0.0.1:3000
+
+<span class="sh-comment"># Run a legacy CGI script</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/report\.cgi$"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">module</span> cgi /usr/lib/cgi-bin/report.cgi
+
+<span class="sh-comment"># Directory requests → index.php via FastCGI, compressed</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">is_directory</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">rewrite_path</span> <span class="sh-str">"${YN_R_PATH}/index.php"</span>
+    <span class="sh-fn">dynamic_compression</span> gzip
+    <span class="sh-fn">module</span> fcgi unix:/run/php-fpm.sock
+
+<span class="sh-comment"># PHP files → FastCGI, compressed</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">extension</span> <span class="sh-str">"php"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">dynamic_compression</span> gzip
+    <span class="sh-fn">module</span> fcgi unix:/run/php-fpm.sock
+
+<span class="sh-comment"># Static assets: pre-compress with brotli, cache one year</span>
+<span class="sh-kw">else</span>
+    <span class="sh-fn">add_header</span> <span class="sh-str">"Cache-Control"</span> <span class="sh-str">"max-age=31536000, public"</span>
+    <span class="sh-fn">static_compression</span> br 1024
+    <span class="sh-fn">module</span> static
+<span class="sh-kw">fi</span></pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         STATIC CACHING
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="caching">
+      <h2 class="h5 fw-semibold mb-3">Static File Caching</h2>
+      <p>
+        YNode caches static file metadata (ETag, Content-Type, Content-Length) in
+        <code>YN_STATIC_DATA_DIR</code> (default: <code>/tmp/yn-static-data-dir</code>),
+        avoiding repeated <code>file</code>, <code>md5sum</code>, and <code>stat</code> calls.
+      </p>
+      <p>
+        The <code>file_watch.sh</code> daemon uses <code>inotifywait</code> to monitor the document
+        root and invalidates cache entries when files change or are deleted. The cache directory is
+        wiped and recreated on each server start.
+      </p>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Request header</th><th>Response</th></tr></thead>
+          <tbody>
+            <tr><td><code>If-None-Match</code></td><td><code>304 Not Modified</code> (ETag comparison)</td></tr>
+            <tr><td><code>If-Modified-Since</code></td><td><code>304 Not Modified</code></td></tr>
+            <tr><td><code>Range</code></td><td><code>206 Partial Content</code> (byte ranges)</td></tr>
+            <tr><td><code>Range</code> (invalid)</td><td><code>416 Range Not Satisfiable</code> with <code>Content-Range: bytes */N</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         COMPRESSION
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="compression">
+      <h2 class="h5 fw-semibold mb-3">Compression</h2>
+
+      <h3>Static compression</h3>
+      <p>
+        Pre-compress static files and serve the compressed version when the client's
+        <code>Accept-Encoding</code> matches. The compressed file is generated on first request
+        and cached in <code>YN_STATIC_DATA_DIR</code> alongside the ETag metadata.
+      </p>
+<pre><span class="sh-comment"># Compress files larger than 1024 bytes with brotli</span>
+<span class="sh-fn">static_compression</span> br 1024
+
+<span class="sh-comment"># Or with gzip / zstd</span>
+<span class="sh-fn">static_compression</span> gzip 512
+<span class="sh-fn">static_compression</span> zstd 2048
+
+<span class="sh-comment"># Disable</span>
+<span class="sh-fn">static_compression</span> off</pre>
+
+      <h3>Dynamic compression</h3>
+      <p>
+        Compress FastCGI responses on the fly. Compressible content types
+        (<code>text/*</code>, <code>application/json</code>, <code>application/javascript</code>, etc.)
+        are compressed before being sent. By default the body is buffered so an accurate
+        <code>Content-Length</code> can be set.
+      </p>
+<pre><span class="sh-fn">dynamic_compression</span> gzip
+<span class="sh-fn">dynamic_compression</span> br
+<span class="sh-fn">dynamic_compression</span> zstd
+<span class="sh-fn">dynamic_compression</span> off</pre>
+
+      <h3>Forced chunked streaming for compressed responses</h3>
+      <p>
+        When buffering a dynamic response is undesirable, enable
+        <code>Transfer-Encoding: chunked</code> streaming instead. This avoids holding the full
+        response in memory at the cost of slightly higher per-chunk overhead.
+      </p>
+<pre><span class="sh-fn">force_compressed_streaming</span> on   <span class="sh-comment"># stream compressed body as chunks</span>
+<span class="sh-fn">force_compressed_streaming</span> off  <span class="sh-comment"># buffer, set Content-Length (default)</span></pre>
+
+      <h3>Compression levels</h3>
+      <p>Set globally in <code>ynode.conf</code>. Separate levels exist for static (offline, high quality) and dynamic (on-the-fly, fast):</p>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Default</th><th>Used for</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_GZIP_LEVEL</code></td><td><code>9</code></td><td>Static pre-compression</td></tr>
+            <tr><td><code>YN_BROTLI_LEVEL</code></td><td><code>9</code></td><td>Static pre-compression</td></tr>
+            <tr><td><code>YN_ZSTD_LEVEL</code></td><td><code>15</code></td><td>Static pre-compression</td></tr>
+            <tr><td><code>YN_GZIP_LEVEL_OTF</code></td><td><code>3</code></td><td>Dynamic on-the-fly</td></tr>
+            <tr><td><code>YN_BROTLI_LEVEL_OTF</code></td><td><code>1</code></td><td>Dynamic on-the-fly</td></tr>
+            <tr><td><code>YN_ZSTD_LEVEL_OTF</code></td><td><code>1</code></td><td>Dynamic on-the-fly</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         CHUNKED REQUESTS
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="chunked">
+      <h2 class="h5 fw-semibold mb-3">Chunked Request Bodies</h2>
+      <p>
+        YNode decodes <code>Transfer-Encoding: chunked</code> request bodies server-side
+        (file uploads, streaming clients). A request that sends both
+        <code>Transfer-Encoding</code> and <code>Content-Length</code> is rejected with
+        <code>400 Bad Request</code> to prevent request smuggling.
+        The decoded body length is forwarded as <code>CONTENT_LENGTH</code> to FastCGI and CGI backends.
+      </p>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover doc-table">
+          <thead class="table-light"><tr><th>Variable</th><th>Default</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>YN_MAX_BODY_SIZE</code></td><td><code>52428800</code></td><td>Maximum total decoded body size in bytes (50 MiB)</td></tr>
+            <tr><td><code>YN_MAX_CHUNKS</code></td><td><code>8192</code></td><td>Maximum number of chunks per request</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="text-muted small">Set these in <code>config/ynode.conf</code>.</p>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         HTTP BASIC AUTH
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="auth">
+      <h2 class="h5 fw-semibold mb-3">HTTP Basic Authentication</h2>
+      <p>Protect a path by calling <code>auth_basic</code> in a <code>.ynaccess</code> file:</p>
+<pre><span class="sh-kw">if</span> <span class="sh-fn">match</span> <span class="sh-str">"^/admin"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">auth_basic</span> <span class="sh-str">"Admin Area"</span> <span class="sh-str">"./.ynpasswd"</span>
+<span class="sh-kw">fi</span></pre>
+      <p>
+        The htpasswd file uses SHA-512 crypt format, compatible with <code>openssl passwd -6</code>:
+      </p>
+<pre><span class="sh-comment"># Create a new password entry</span>
+<span class="sh-cmd">echo</span> <span class="sh-str">"myuser:$(openssl passwd -6 'mysecret')"</span> >> .ynpasswd</pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         PROXY MODULE
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="proxy">
+      <h2 class="h5 fw-semibold mb-3">Reverse Proxy (<code>proxy</code>)</h2>
+      <p>
+        The <code>proxy</code> module forwards requests to an upstream server using <code>socat</code>.
+        It handles <code>http://</code>, <code>https://</code> (via <code>socat OPENSSL</code>),
+        and <code>unix:/path/to/socket</code> targets.
+      </p>
+      <ul class="small mb-3">
+        <li>Strips hop-by-hop headers (<code>Connection</code>, <code>Transfer-Encoding</code>, <code>Upgrade</code>, etc.) from both directions.</li>
+        <li>Injects <code>X-Forwarded-For</code>, <code>X-Forwarded-Proto</code>, and <code>X-Forwarded-Host</code>.</li>
+        <li>Renames the upstream <code>Server</code> header to <code>X-Proxy-Server</code>.</li>
+        <li>Forwards the request body if one was received.</li>
+        <li>Sends <code>Connection: close</code> upstream - persistent backend connections are not reused.</li>
+      </ul>
+<pre><span class="sh-comment"># Strip /api prefix, proxy to a local Node.js service</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/api/"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">rewrite_prefix</span> <span class="sh-str">"/api"</span> <span class="sh-str">""</span>
+    <span class="sh-fn">module</span> proxy http://127.0.0.1:3000
+
+<span class="sh-comment"># Proxy through a Unix socket</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/wp/"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">rewrite_prefix</span> <span class="sh-str">"/wp"</span> <span class="sh-str">""</span>
+    <span class="sh-fn">module</span> proxy unix:/run/nginx.sock</pre>
+      <p class="text-muted small">
+        <strong>Note:</strong> the proxy module replies with <code>502 Bad Gateway</code> if the upstream
+        is unreachable, returns an invalid status line, or times out after <code>5 s</code>.
+      </p>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         CGI MODULE
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="cgi">
+      <h2 class="h5 fw-semibold mb-3">CGI Module (<code>cgi</code>)</h2>
+      <p>
+        The <code>cgi</code> module executes a binary with a clean <code>env -i</code> environment
+        populated with standard CGI/1.1 variables:
+        <code>REQUEST_METHOD</code>, <code>SCRIPT_NAME</code>, <code>SCRIPT_FILENAME</code>,
+        <code>QUERY_STRING</code>, <code>CONTENT_TYPE</code>, <code>CONTENT_LENGTH</code>,
+        <code>REMOTE_ADDR</code>, <code>SERVER_NAME</code>, <code>SERVER_PORT</code>,
+        <code>GATEWAY_INTERFACE</code>, <code>SERVER_PROTOCOL</code>, <code>SERVER_SOFTWARE</code>,
+        and all <code>HTTP_*</code> headers (except <code>HTTP_PROXY</code> to prevent Httpoxy).
+        The request body is fed via stdin.
+      </p>
+<pre><span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/report\.cgi$"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">module</span> cgi /usr/lib/cgi-bin/report.cgi
+
+<span class="sh-comment"># Run php-cgi for a specific script</span>
+<span class="sh-kw">elif</span> <span class="sh-fn">match</span> <span class="sh-str">"^/test_cgi\.php$"</span>; <span class="sh-kw">then</span>
+    <span class="sh-fn">module</span> cgi php-cgi</pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         MODULES
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="modules">
+      <h2 class="h5 fw-semibold mb-3">Writing a Module</h2>
+      <p>
+        Modules are Bash scripts in <code>modules/</code> that implement two functions.
+        The module is <em>sourced</em> into the request handler process, giving it full access to
+        all request variables (<code>YN_R_PATH</code>, <code>YN_HTTP_METHOD</code>,
+        <code>YN_QUERY_STRING</code>, parsed headers, etc.).
+      </p>
+<pre><span class="sh-kw">function</span> <span class="sh-fn">prepare_headers</span>() {
+    <span class="sh-comment"># Validate the request, set the HTTP response code,</span>
+    <span class="sh-comment"># and declare response headers via add_header().</span>
+}
+
+<span class="sh-kw">function</span> <span class="sh-fn">output_content</span>() {
+    <span class="sh-comment"># Emit HTTP response headers (call output_headers()),</span>
+    <span class="sh-comment"># then write the response body to stdout.</span>
+}</pre>
+    </section>
+
+    <!-- ══════════════════════════════════════════════
+         LIMITATIONS
+    ══════════════════════════════════════════════ -->
+    <section class="doc-section" id="limitations">
+      <h2 class="h5 fw-semibold mb-3">Limitations</h2>
+      <div class="d-flex flex-column gap-2">
+        <div class="d-flex gap-3 align-items-start">
+          <span class="limit-badge" style="background:#fef3c7;color:#92400e">WIP</span>
+          <div class="small"><strong>HTTP/2</strong> - frame parsing is implemented but the full stack is non-functional. Do not enable <code>YN_HTTP2</code>.</div>
+        </div>
+        <div class="d-flex gap-3 align-items-start">
+          <span class="limit-badge" style="background:#fee2e2;color:#991b1b">TODO</span>
+          <div class="small"><strong>Autoindex module</strong> - not yet implemented.</div>
+        </div>
+        <div class="d-flex gap-3 align-items-start">
+          <span class="limit-badge" style="background:#fef3c7;color:#92400e">WIP</span>
+          <div class="small"><strong>Proxy keep-alive</strong> - the proxy module sends <code>Connection: close</code> to upstream; persistent backend connections are not reused.</div>
+        </div>
+        <div class="d-flex gap-3 align-items-start">
+          <span class="limit-badge" style="background:#fee2e2;color:#991b1b">TODO</span>
+          <div class="small"><strong>Multi-site</strong> - single document root only; no virtual hosting.</div>
+        </div>
+        <div class="d-flex gap-3 align-items-start">
+          <span class="limit-badge" style="background:#f3f4f6;color:#4b5563">NOTE</span>
+          <div class="small"><strong>Performance</strong> - Bash-based; not suitable for production traffic. Designed for development, embedded use, or educational purposes.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── License line ── -->
+    <p class="text-muted small border-top pt-3 mt-2">BSD 3-Clause License · Copyright 2025 AA</p>
+
+  </div><!-- /.main-card -->
+
+  <footer class="text-center mt-4">
+    YNode/0.1 &nbsp;·&nbsp; BSD 3-Clause &nbsp;·&nbsp;
+    <a href="https://github.com/aalbenque/ynode" class="text-white-50">GitHub</a>
+  </footer>
+</div><!-- /.container -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc4s9bIOgUxi8T/jzmfFk5b3bqlvkbVOODiROfdMHkQ"
+        crossorigin="anonymous"></script>
+<script src="js/docs.js"></script>
+</body>
+</html>

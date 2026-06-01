@@ -1,0 +1,55 @@
+#########################################################
+# .ynaccess – per-directory rules
+#
+# This file is sourced by YNode when a request
+# targets this directory or its contents.
+#
+# Available primitives (from utils.sh):
+#   - is_directory                      - true if YN_R_PATH is a directory
+#   - extension ...                     - true if YN_EXTENSION matches any argument
+#   - module NAME [ARGS]                - choose backend module + parameters
+#   - add_header NAME VALUE             - add response header
+#   - match REGEX                       - true if YN_R_PATH matches the REGEX
+#   - auth_basic REAL [YPASSWD_FILE]    - ask for a password for the realm REALM. If no YPASSWD_FILE is provided, it uses ./.ypasswd
+#   - deny                              - return 403 Unauthorized
+#   - rewrite_path PATH                 - rewrite YN_R_PATH before continuing
+#   - simple_http_response RESPONSE     - return an HTTP response. Must be in the form of "HTTP_CODE HTTP_MESSAGE" (eg: "404 Not Found")
+#
+# Available modules:
+#   - static                - serves static file
+#   - cgi BINARY            - request is sent to the cgi compatible BINARY
+#   - fcgi [SOCKET]         - request is sent to the FastCGI server at SOCKET. If SOCKET is empty, uses YN_FCGI_URI instead
+#   - ping                  - returns 200 OK
+#   - redirect              - Permanent redirect (unimplemented)
+#   - temp_redirect         - Temporary redirect (unimplemented)
+#   - autoindex             - Generate an html index of files in the directory
+#   - proxy URL             - Proxy the request to the server at URL
+#
+# Variables:
+#   - YN_R_PATH            → current request path (rewritable)
+#   - YN_HTTP_ROOT         → document root
+#
+#########################################################
+
+# Add security-related headers
+add_header "X-Frame-Options" "DENY"
+add_header "X-Content-Type-Options" "nosniff"
+
+# If the requested path is a directory, rewrite it to /index.php
+# and send it to the FastCGI/PHP backend.
+if is_directory; then
+    # Append /index.php to the current request path.
+    export YN_R_PATH="${YN_R_PATH}/index.php"
+
+    # Route to FastCGI via PHP-FPM socket.
+    # (Alternative would be: module cgi ... for plain CGI.)
+    module fcgi /run/php-fpm.sock
+
+# If the requested file has a .php extension, send it to FastCGI.
+elif extension "php"; then
+    module fcgi /run/php-fpm.sock
+
+# For everything else, serve static files directly from disk.
+else
+    module static
+fi

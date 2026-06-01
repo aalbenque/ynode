@@ -1,0 +1,49 @@
+# Serve static index.html for /, fall back to index.php (FastCGI) if not found
+dynamic_compression gzip
+static_compression gzip 4096
+#force_compressed_streaming on
+
+
+if match "^/wp/"; then
+  # Proxied through nginx
+  rewrite_prefix "/wp" ""
+  module proxy http://localhost:6681
+elif match "^/$"; then
+  rewrite_path "/index.html"
+  module static
+elif match "^/index\.php$"; then
+  dynamic_compression off
+  module fcgi
+  #module cgi php-cgi
+elif match "^/restricted"; then
+  auth_basic "Restricted Area" "./.ynpasswd"
+  simple_http_response '200 OK' 'Hello there!'
+# We protect our .ynaccess files
+elif match "/.ynaccess$" || match "/.ynpasswd$"; then
+  simple_http_response "404 Not Found"
+# A few utilities
+elif match "/ping"; then
+  module ping
+elif match "/test_cgi.php"; then
+  module cgi php-cgi
+elif match "/test_fcgi.php"; then
+  module fcgi
+# Normally we wouldn't allow the execution of php scripts besides index.php
+elif extension "php"; then
+  deny
+  #module fcgi
+elif match "/redirect"; then
+  module temp_redirect "/"
+else
+  add_header "Cache-Control" "max-age=31536000"
+  module static
+fi
+
+# TBA:
+# require_ip "127.0.0.1"
+# rewrite_prefix "/api" ""
+# module proxy "http://127.0.0.1:3000"
+# remove_header "X-Powered-By"
+# expires "1y"
+# deny
+# allow_methods GET HEAD

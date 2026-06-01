@@ -1,0 +1,28 @@
+# Demo media license
+
+The media files in this directory are used by the YNode demo site.
+
+Background images extracted from the official Linux Mint "mint-backgrounds-tricia" package (Mint 19.3), where they are distributed under CC0 1.0 Universal.
+Source: http://packages.linuxmint.com/pool/main/m/mint-backgrounds-tricia/
+CC0 1.0: https://creativecommons.org/publicdomain/zero/1.0/
+Credits below reproduced from the package's own credits file.
+
+Some files may have been resized, cropped, compressed, or converted for use in the demo site.
+
+# Attribution
+
+----------------------------------------------------------------------------------------------------------------
+Files                         | Artist              | Link                                         | License
+----------------------------------------------------------------------------------------------------------------
+arestifo_monte_bregagno.jpg   | Alberto Restifo     | https://500px.com/albertorestifo             | CC0
+kyoung_chicago.jpg            | Kevin Young         | https://www.flickr.com/photos/kevinjyoung    | CC0
+dzawila_hopeful_horizons.webp | Dawid Zawila        | http://facebook.com/dawidzawilafotografia    | CC0
+----------------------------------------------------------------------------------------------------------------
+
+# Project logo
+
+- ynode.png
+
+The YNode logo was created by the YNode project author. It is included for identification and demonstration of the YNode project. It is not licensed under CC0 unless explicitly stated otherwise.
+You may use the YNode logo when referring to the YNode project, linking to it, documenting it, or showing unmodified screenshots of the demo site. You may not use it to represent a fork, modified distribution, unrelated product, or endorsement without permission.
+
