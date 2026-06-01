@@ -356,10 +356,6 @@ function prepare_headers() {
 		FCGI_SKIP=$(($FCGI_SKIP+1))
 	done
 
-    #if [[ "$FCGI_BODY_SIZE" -gt "0" ]]; then 
-    #    fcgi_stdin_request "${YN_R_BODY}"
-    #fi
-
     fcgi_empty_stdin_request
 
     info_time "fcgi stdin written"

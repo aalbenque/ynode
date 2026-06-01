@@ -168,7 +168,6 @@ function fcgi_empty_param_request() {
     fi
 }
 
-# TODO :Détection de STDIN avec taille supérieure à 65536 octets
 function fcgi_stdin_request() {
     local BYTES_TO_SEND="$1"
     local skip="$2"

@@ -43,21 +43,15 @@ These modules exist as stubs and return `501 Not Implemented`.
 
 - FastCGI socket (`YN_FCGI_URI`) should be configurable per `.ynaccess` call, not only globally
 
-### FastCGI parameter length limit
+### FastCGI parameter length limit (Bash fallback only)
 
-- **`fcgi-utils.sh:118`** - `name_value_pair()` only handles name/value strings up to 255 bytes (single-byte length encoding); values longer than 255 bytes require the 4-byte length format defined in the FastCGI spec - not implemented
+- **`fcgi-utils.sh`** - `name_value_pair()` only handles name/value strings up to 255 bytes (single-byte length encoding); values longer than 255 bytes require the 4-byte length format defined in the FastCGI spec - not implemented
 
-### FastCGI STDIN size limit
+### FastCGI read timeout missing (Bash fallback only)
 
-- **`fcgi-utils.sh:171`** - `fcgi_stdin_request()` does not handle STDIN payloads larger than 65535 bytes (the maximum single FastCGI record body); large POST bodies or file uploads will be silently truncated
+- **`fcgi.sh`** - `#TODO: timeout` - the `dd` read inside `fcgi_send_request` has no timeout; a hung FastCGI process will stall the connection indefinitely
 
-### FastCGI response header overflow
-
-- **`fcgi-utils.sh:316`** - If the FastCGI response headers exceed the first `FCGI_STDOUT` record, `FCGI_HEADERS_SENT` may be set prematurely and subsequent header bytes will be written into the body
-
-### FastCGI read timeout missing
-
-- **`fcgi-utils.sh:283`** - `#TODO: timeout` - the `dd` read inside `fcgi_send_request` has no timeout; a hung FastCGI process will stall the connection indefinitely
+---
 
 ### Default pages `Content-Length` requires a `stat` call
 
