@@ -34,6 +34,11 @@ clear_env() {
         unset "$name"
     done
 
+	# Per-request state set by .ynaccess primitives: must not leak to the next
+	# request on the same keep-alive connection
+	unset YN_MODULE YN_MODULE_PARAMETERS YN_RESPONSE_CODE
+	unset YN_REWRITE_PREFIX_FROM YN_REWRITE_PREFIX_TO
+
 	YN_HDR_RESPONSE=()
 	YN_STATIC_COMPRESSION=
 	YN_DYNAMIC_COMPRESSION=
@@ -98,6 +103,7 @@ while true; do
 	# Host has to be supplied
 	if [[ -z ${HTTP_HOST:-} ]] then
 		simple_http_response "400 Bad Request"
+		break
 	fi
 	HTTP_HOST="${HTTP_HOST,,}"
 

@@ -134,8 +134,13 @@ function http_response_code() {
 	export HTTP_RESPONSE_CODE="HTTP/1.1 $@"
 }
 
+# Sends a complete response with "Connection: close", then ENDS THE CONNECTION.
+# Callers (deny, auth_basic, path checks, modules...) rely on this function not
+# returning: any code after it must never run, or it would append a second
+# response (e.g. the protected content) to the stream.
+# Note: inside a subshell (pipeline, $(...)), exit only leaves that subshell.
 function simple_http_response() {
-		# TODO: Avoid closing the connection after sending 
+		# TODO: Avoid closing the connection after sending
 		local error_message
 		error_message="$1"
 		if [[ -n "${2:-}" ]]; then
@@ -160,7 +165,7 @@ function simple_http_response() {
 
 		if [[ "$YN_R_METHOD" == "HEAD" ]]; then
 			send_clrf
-			return;
+			exit 0
 		fi
 
 		# TODO: Cache the default page content to send the right Content-Length without having to write `stat`
@@ -182,8 +187,7 @@ function simple_http_response() {
 			send "$data"
 		fi
 
-	
-	
+		exit 0
 }
 
 function http_output_data() {

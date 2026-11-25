@@ -28,6 +28,8 @@ elif match "/test_cgi.php"; then
   module cgi php-cgi
 elif match "/test_fcgi.php"; then
   module fcgi
+elif match "/test.php"; then
+  module fcgi
 # Normally we wouldn't allow the execution of php scripts besides index.php
 elif extension "php"; then
   deny

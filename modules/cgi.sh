@@ -10,8 +10,9 @@ function prepare_headers() {
 
 	# Check that we're not outside of the root directory
 	if ! path_inside_root "$YN_HTTP_ROOT" "$full_path"; then
-		simple_http_response "402 Forbidden"
-	fi 
+		simple_http_response "403 Forbidden"
+		exit
+	fi
 
 	if [[ ! -f "$full_path" ]]; then
 		simple_http_response "404 Not Found"

@@ -1,6 +1,6 @@
 # TLS certificates
-self-cert.key
-self-cert.pem
+*.key
+*.pem
 
 # Compiled C helper binary
 helper/helper
@@ -19,3 +19,4 @@ __pycache__/
 .ynpasswd
 
 *.code-workspace
+
